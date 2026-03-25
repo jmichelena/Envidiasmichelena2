@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Víctor & Lucía — 12.04.2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+  🎵 MÚSICA
+  1. Pon tu archivo .mp3 en la MISMA carpeta que este HTML
+  2. Cambia "cancion.mp3" por el nombre real de tu archivo
+     Ejemplo: si se llama "perfect.mp3"  →  src="perfect.mp3"
+============================================================ -->
+<audio id="bg-music" loop>
+  <source src="musica/cancion.mp3" type="audio/mpeg">
+</audio>
+
+<style>
+  :root {
+    --black: #0a0a0a;
+    --card:  #161616;
+    --gold:  #c9a96e;
+    --gold-light: #e8d5b0;
+    --white: #f5f0eb;
+    --muted: #888;
+    --border: rgba(201,169,110,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--black); color:var(--white); font-family:'Montserrat',sans-serif; font-weight:300; overflow-x:hidden; }
+
+  /* MUSIC PLAYER */
+  #music-player {
+    position:fixed; bottom:28px; right:28px; z-index:999;
+    display:flex; align-items:center; gap:10px;
+    background:rgba(10,10,10,0.88); border:1px solid var(--border);
+    padding:10px 16px 10px 12px; backdrop-filter:blur(12px);
+  }
+  #music-btn {
+    width:36px; height:36px; border:1px solid var(--gold); background:transparent;
+    color:var(--gold); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .3s;
+  }
+  #music-btn:hover { background:var(--gold); color:var(--black); }
+  .music-info { display:flex; flex-direction:column; gap:2px; }
+  .music-label { font-size:8px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
+  .music-title { font-size:11px; color:var(--white); }
+  .music-bars { display:flex; align-items:flex-end; gap:2px; height:16px; margin-left:4px; }
+  .music-bars span { display:block; width:3px; background:var(--gold); border-radius:1px; height:4px; }
+  .music-bars.playing span:nth-child(1) { animation:bar .8s ease infinite; }
+  .music-bars.playing span:nth-child(2) { animation:bar .8s .2s ease infinite; }
+  .music-bars.playing span:nth-child(3) { animation:bar .8s .4s ease infinite; }
+  @keyframes bar { 0%,100%{height:4px} 50%{height:14px} }
+
+  /* ORNAMENT */
+  .ornament { display:flex; align-items:center; gap:12px; justify-content:center; opacity:.5; }
+  .ornament::before,.ornament::after { content:''; width:60px; height:1px; background:linear-gradient(90deg,transparent,var(--gold)); }
+  .ornament::after { background:linear-gradient(90deg,var(--gold),transparent); }
+  .ornament-diamond { width:6px; height:6px; background:var(--gold); transform:rotate(45deg); }
+
+  /* HERO */
+  #hero {
+    height:100vh; min-height:700px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; overflow:hidden; text-align:center; padding:40px 20px;
+  }
+  #hero::before {
+    content:''; position:absolute; inset:0; z-index:1;
+    background: radial-gradient(ellipse 60% 50% at 50% 80%,rgba(201,169,110,.08) 0%,transparent 70%),
+                radial-gradient(ellipse 100% 60% at 50% 0%,rgba(20,20,20,.9) 0%,transparent 50%);
+  }
+  /* ============================================================
+    📸 FOTO DE FONDO DEL HERO
+    Cambia 'foto1.jpg' por el nombre de tu imagen.
+    Debe estar en la misma carpeta que este HTML.
+  ============================================================ */
+  .hero-photo { position:absolute; inset:0; background:url('fotos/foto1.jpg') center/cover no-repeat; opacity:.18; filter:grayscale(30%); }
+  .hero-content { position:relative; z-index:2; }
+  .hero-pre { font-size:10px; letter-spacing:5px; text-transform:uppercase; color:var(--gold); margin-bottom:28px; opacity:0; animation:fadeUp 1s .3s ease both; }
+  .hero-names { font-family:'Cormorant Garamond',serif; font-size:clamp(72px,14vw,130px); font-weight:300; line-height:.9; letter-spacing:-2px; opacity:0; animation:fadeUp 1s .5s ease both; }
+  .hero-names .ampersand { color:var(--gold); font-style:italic; display:block; font-size:.6em; line-height:1.2; }
+  .hero-date { margin-top:32px; font-size:11px; letter-spacing:6px; text-transform:uppercase; color:var(--gold-light); opacity:0; animation:fadeUp 1s .8s ease both; }
+  .hero-scroll { position:absolute; bottom:40px; z-index:2; display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0; animation:fadeUp 1s 1.5s ease both; }
+  .hero-scroll span { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--muted); }
+  .scroll-line { width:1px; height:40px; background:linear-gradient(var(--gold),transparent); animation:scrollPulse 2s infinite; }
+
+  /* SECTIONS */
+  section { padding:80px 20px; max-width:860px; margin:0 auto; }
+  .section-label { font-size:9px; letter-spacing:5px; text-transform:uppercase; color:var(--gold); margin-bottom:20px; display:block; }
+  .section-title { font-family:'Cormorant Garamond',serif; font-size:clamp(36px,6vw,54px); font-weight:300; line-height:1.1; margin-bottom:32px; }
+
+  /* COUNTDOWN */
+  #countdown-section { text-align:center; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:60px 20px; max-width:100%; }
+  .countdown-grid { display:flex; justify-content:center; gap:clamp(20px,5vw,60px); margin-top:40px; flex-wrap:wrap; }
+  .count-item { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .count-number { font-family:'Cormorant Garamond',serif; font-size:clamp(52px,9vw,88px); font-weight:300; line-height:1; min-width:80px; text-align:center; }
+  .count-label { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); }
+  .count-divider { font-family:'Cormorant Garamond',serif; font-size:60px; color:var(--gold); opacity:.3; align-self:flex-start; padding-top:8px; line-height:1; }
+
+  /* GALLERY */
+  #gallery { max-width:100%; padding:60px 20px; }
+  .gallery-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; max-width:860px; margin:0 auto; }
+  .gallery-item { aspect-ratio:3/4; overflow:hidden; }
+  .gallery-item img { width:100%; height:100%; object-fit:cover; filter:grayscale(20%) contrast(1.05); transition:transform .8s,filter .8s; }
+  .gallery-item:hover img { transform:scale(1.05); filter:grayscale(0%) contrast(1.1); }
+  .gallery-item:first-child { grid-row:span 2; aspect-ratio:auto; }
+
+  /* TIMELINE */
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:''; position:absolute; left:0; top:10px; bottom:10px; width:1px; background:linear-gradient(var(--gold),transparent); }
+  .timeline-item { position:relative; padding:0 0 36px 24px; opacity:0; transform:translateX(-10px); transition:all .6s ease; }
+  .timeline-item.visible { opacity:1; transform:translateX(0); }
+  .timeline-item::before { content:''; position:absolute; left:-4px; top:8px; width:8px; height:8px; background:var(--gold); transform:rotate(45deg); }
+  .timeline-time { font-size:10px; letter-spacing:3px; color:var(--gold); margin-bottom:4px; text-transform:uppercase; }
+  .timeline-event { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; }
+
+  /* VENUE */
+  .venue-card { background:var(--card); border:1px solid var(--border); padding:40px; text-align:center; }
+  .venue-name { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; margin-bottom:8px; }
+  .venue-address { font-size:12px; letter-spacing:1px; color:var(--muted); line-height:1.7; margin-bottom:24px; }
+  .btn-gold { display:inline-block; padding:12px 32px; border:1px solid var(--gold); color:var(--gold); text-decoration:none; font-size:10px; letter-spacing:3px; text-transform:uppercase; transition:all .3s; background:transparent; cursor:pointer; }
+  .btn-gold:hover { background:var(--gold); color:var(--black); }
+  .map-embed { width:100%; height:300px; border:1px solid var(--border); filter:grayscale(100%) invert(90%) contrast(85%); margin-top:32px; }
+
+  /* DRESS CODE */
+  .dresscode-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); margin-top:32px; }
+  .dresscode-item { background:var(--card); padding:32px; text-align:center; }
+  .dresscode-icon { font-size:32px; margin-bottom:12px; display:block; }
+  .dresscode-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:300; margin-bottom:8px; }
+  .dresscode-desc { font-size:11px; letter-spacing:1px; color:var(--muted); line-height:1.7; }
+
+  /* RULES */
+  .rules-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:32px; }
+  .rule-card { border:1px solid var(--border); padding:28px; }
+  .rule-icon { font-size:24px; margin-bottom:12px; display:block; opacity:.7; }
+  .rule-title { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+  .rule-text { font-size:12px; color:var(--muted); line-height:1.8; }
+
+  /* FORM */
+  #rsvp { text-align:center; }
+  .form-wrapper { max-width:500px; margin:40px auto 0; }
+  .form-group { margin-bottom:16px; text-align:left; }
+  .form-group label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:8px; }
+  .form-group input,.form-group select,.form-group textarea { width:100%; background:var(--card); border:1px solid var(--border); color:var(--white); padding:14px 16px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:300; outline:none; transition:border-color .3s; -webkit-appearance:none; }
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus { border-color:var(--gold); }
+  .form-group select option { background:var(--card); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .btn-submit { width:100%; padding:16px; background:transparent; border:1px solid var(--gold); color:var(--gold); font-family:'Montserrat',sans-serif; font-size:10px; letter-spacing:4px; text-transform:uppercase; cursor:pointer; transition:all .3s; margin-top:8px; }
+  .btn-submit:hover { background:var(--gold); color:var(--black); }
+  .form-success { display:none; padding:32px; border:1px solid var(--gold); text-align:center; }
+  .form-success .success-title { font-family:'Cormorant Garamond',serif; font-size:32px; color:var(--gold); margin-bottom:12px; }
+  .form-success .success-text { font-size:12px; color:var(--muted); line-height:1.8; }
+  .wa-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 28px; border:1px solid rgba(37,211,102,.4); color:#25d366; text-decoration:none; font-size:10px; letter-spacing:3px; text-transform:uppercase; margin-top:20px; transition:all .3s; }
+  .wa-btn:hover { background:rgba(37,211,102,.1); }
+
+  /* FOOTER */
+  footer { text-align:center; padding:60px 20px; border-top:1px solid var(--border); }
+  .footer-names { font-family:'Cormorant Garamond',serif; font-size:clamp(40px,8vw,72px); font-weight:300; opacity:.15; letter-spacing:-1px; line-height:1; }
+  .footer-date { font-size:10px; letter-spacing:5px; color:var(--gold); margin-top:20px; text-transform:uppercase; }
+  .section-divider { border:none; border-top:1px solid var(--border); max-width:860px; margin:0 auto; }
+  .fade-in { opacity:0; transform:translateY(20px); transition:all .8s ease; }
+  .fade-in.visible { opacity:1; transform:translateY(0); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes scrollPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+  @media(max-width:600px){
+    .gallery-grid{grid-template-columns:1fr 1fr}
+    .gallery-item:first-child{grid-row:span 1}
+    .dresscode-grid,.rules-grid,.form-row{grid-template-columns:1fr}
+    .count-divider{display:none}
+    #music-player{bottom:16px;right:16px;padding:8px 12px 8px 10px}
+  }
+</style>
+</head>
+<body>
+
+<!-- REPRODUCTOR FLOTANTE -->
+<div id="music-player">
+  <button id="music-btn" onclick="toggleMusic()" title="Reproducir música">
+    <svg id="icon-play"  width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+  <div class="music-info">
+    <span class="music-label">♪ Nuestra canción</span>
+    <!-- Cambia este texto por el nombre de tu canción -->
+    <span class="music-title">Víctor &amp; Lucía</span>
+  </div>
+  <div class="music-bars" id="music-bars">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<section id="hero">
+  <!-- ============================================================
+    📸 FOTO HERO  →  cambia 'foto1.jpg' por tu archivo
+  ============================================================ -->
+  <div class="hero-photo"></div>
+  <div class="hero-content">
+    <p class="hero-pre">Nos casamos</p>
+    <h1 class="hero-names">
+      Víctor
+      <span class="ampersand">&</span>
+      Lucía
+    </h1>
+    <p class="hero-date">Domingo · 12 · Abril · 2026</p>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ==================== COUNTDOWN ==================== -->
+<section id="countdown-section">
+  <span class="section-label">Cuenta regresiva</span>
+  <div class="ornament"><div class="ornament-diamond"></div></div>
+  <div class="countdown-grid">
+    <div class="count-item"><span class="count-number" id="days">00</span><span class="count-label">Días</span></div>
+    <span class="count-divider">:</span>
+    <div class="count-item"><span class="count-number" id="hours">00</span><span class="count-label">Horas</span></div>
+    <span class="count-divider">:</span>
+    <div class="count-item"><span class="count-number" id="minutes">00</span><span class="count-label">Minutos</span></div>
+    <span class="count-divider">:</span>
+    <div class="count-item"><span class="count-number" id="seconds">00</span><span class="count-label">Segundos</span></div>
+  </div>
+</section>
+
+<!-- ==================== GALLERY ==================== -->
+<section id="gallery" class="fade-in">
+  <div style="text-align:center;margin-bottom:40px;max-width:860px;margin-left:auto;margin-right:auto;">
+    <span class="section-label">Nuestra historia</span>
+    <h2 class="section-title">Juntos para siempre</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.9;max-width:500px;margin:0 auto;">
+      Dos personas, una misma historia. Nos hace inmensamente felices que estés presente en el día más especial de nuestras vidas.
+    </p>
+  </div>
+  <!-- ============================================================
+    📸 GALERÍA  →  cambia foto1.jpg / foto2.jpg / foto3.jpg
+    por los nombres reales de tus imágenes.
+    Todas deben estar en la misma carpeta que este HTML.
+  ============================================================ -->
+  <div class="gallery-grid">
+    <div class="gallery-item"><img src="fotos/foto1.jpg" alt="Víctor y Lucía"></div>
+    <div class="gallery-item"><img src="fotos/foto2.jpg" alt="Víctor y Lucía" style="object-position:left center"></div>
+    <div class="gallery-item"><img src="fotos/foto3.jpg" alt="Víctor y Lucía" style="object-position:right center"></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== ITINERARY ==================== -->
+<section id="itinerary" class="fade-in">
+  <span class="section-label">El gran día</span>
+  <h2 class="section-title">Programa</h2>
+  <div class="timeline">
+    <div class="timeline-item"><p class="timeline-time">15:30 hrs</p><p class="timeline-event">Ceremonia</p></div>
+    <div class="timeline-item"><p class="timeline-time">16:30 hrs</p><p class="timeline-event">Ingreso de los Novios</p></div>
+    <div class="timeline-item"><p class="timeline-time">17:00 hrs</p><p class="timeline-event">Cóctel</p></div>
+    <div class="timeline-item"><p class="timeline-time">19:00 hrs</p><p class="timeline-event">Cena</p></div>
+    <div class="timeline-item"><p class="timeline-time">20:30 hrs</p><p class="timeline-event">Pastel</p></div>
+    <div class="timeline-item"><p class="timeline-time">21:00 hrs</p><p class="timeline-event">Despedida de los Novios</p></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== VENUE ==================== -->
+<section id="venue" class="fade-in">
+  <span class="section-label">Dónde nos vemos</span>
+  <h2 class="section-title">Lugar</h2>
+  <div class="venue-card">
+    <p class="venue-name">La Quebrada</p>
+    <p class="venue-address">Diagonal Santa Rita Final, Zona 2<br>La Esperanza, Quetzaltenango</p>
+    <a href="https://maps.app.goo.gl/isjFGiP51U33mDqu5" target="_blank" class="btn-gold">Ver en mapa</a>
+  </div>
+  <iframe class="map-embed"
+    src="https://maps.google.com/maps?q=La+Quebrada+Diagonal+Santa+Rita+Final+Zona+2+La+Esperanza+Quetzaltenango&output=embed"
+    frameborder="0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+  </iframe>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== DRESS CODE ==================== -->
+<section id="dresscode" class="fade-in">
+  <span class="section-label">Vestimenta</span>
+  <h2 class="section-title">Dress Code</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.9;">Queremos que te veas tan especial como este día. Te pedimos asistir con vestimenta formal.</p>
+  <div class="dresscode-grid">
+    <div class="dresscode-item">
+      <span class="dresscode-icon">🤵</span>
+      <p class="dresscode-title">Caballeros</p>
+      <p class="dresscode-desc">Traje formal o smoking.<br>Corbata o moño.</p>
+    </div>
+    <div class="dresscode-item">
+      <span class="dresscode-icon">👗</span>
+      <p class="dresscode-title">Damas</p>
+      <p class="dresscode-desc">Vestido largo o cocktail.<br>Evitar el color blanco.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== RULES ==================== -->
+<section id="rules" class="fade-in">
+  <span class="section-label">Detalles importantes</span>
+  <h2 class="section-title">A tomar en cuenta</h2>
+  <div class="rules-grid">
+    <div class="rule-card">
+      <span class="rule-icon">🎁</span>
+      <p class="rule-title">Regalos</p>
+      <p class="rule-text">Tu presencia es el mejor regalo. Si deseas hacernos un detalle, el día del evento encontrarás un lugar para depositar tu obsequio en efectivo.</p>
+    </div>
+    <div class="rule-card">
+      <span class="rule-icon">🚫</span>
+      <p class="rule-title">Sin niños</p>
+      <p class="rule-text">Para que todos puedan relajarse y disfrutar al máximo, les pedimos amablemente asistir sin sus pequeñines.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ==================== RSVP ==================== -->
+<section id="rsvp" class="fade-in">
+  <span class="section-label">Confirmación</span>
+  <h2 class="section-title">¿Nos acompañas?</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.9;max-width:440px;margin:0 auto;">
+    Por favor confirma tu asistencia antes del <strong style="color:var(--gold-light);">31 de marzo de 2026</strong>.
+  </p>
+  <div class="form-wrapper">
+    <div id="rsvp-form">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="name" placeholder="Tu nombre">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Asistencia</label>
+          <select id="attending">
+            <option value="">Selecciona</option>
+            <option value="si">Sí, asistiré 🥂</option>
+            <option value="no">No podré asistir</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Número de personas</label>
+          <select id="guests">
+            <option value="1">Solo yo</option>
+            <option value="2">2 personas</option>
+            <option value="3">3 personas</option>
+            <option value="4">4 personas</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Mensaje para los novios (opcional)</label>
+        <textarea id="message" rows="3" placeholder="Escribe un mensaje..."></textarea>
+      </div>
+      <button class="btn-submit" onclick="submitRSVP()">Confirmar asistencia</button>
+    </div>
+    <div class="form-success" id="success-msg">
+      <p class="success-title">¡Gracias!</p>
+      <p class="success-text">Hemos recibido tu confirmación. ¡Nos vemos el 12 de abril! 🥂</p>
+    </div>
+    <div style="margin-top:32px;padding-top:32px;border-top:1px solid var(--border);">
+      <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">También puedes confirmar por</p>
+      <!-- ============================================================
+        📱 LINK WHATSAPP  →  https://wa.link/hkm4qh
+      ============================================================ -->
+      <a href="https://wa.link/hkm4qh" target="_blank" class="wa-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp · 3391-6977
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="ornament" style="margin-bottom:32px;"><div class="ornament-diamond"></div></div>
+  <p class="footer-names">Víctor & Lucía</p>
+  <p class="footer-date">12 · 04 · 2026</p>
+  <p style="font-size:10px;color:#333;margin-top:32px;letter-spacing:2px;">Con amor ♡</p>
+</footer>
+
+<script>
+  // ---- COUNTDOWN ----
+  function updateCountdown() {
+    const diff = new Date('2026-04-12T15:30:00') - new Date();
+    if (diff <= 0) { ['days','hours','minutes','seconds'].forEach(id => document.getElementById(id).textContent='00'); return; }
+    document.getElementById('days').textContent    = String(Math.floor(diff/86400000)).padStart(2,'0');
+    document.getElementById('hours').textContent   = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('minutes').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('seconds').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // ---- SCROLL ANIMATIONS ----
+  const obs = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:.1});
+  document.querySelectorAll('.fade-in, .timeline-item').forEach(el => obs.observe(el));
+
+  // ---- MUSIC PLAYER ----
+  const audio    = document.getElementById('bg-music');
+  const bars     = document.getElementById('music-bars');
+  const iconPlay = document.getElementById('icon-play');
+  const iconPause= document.getElementById('icon-pause');
+  let playing = false;
+
+  function toggleMusic() {
+    if (playing) {
+      audio.pause();
+      bars.classList.remove('playing');
+      iconPlay.style.display='block'; iconPause.style.display='none';
+    } else {
+      audio.play().catch(()=>{});
+      bars.classList.add('playing');
+      iconPlay.style.display='none'; iconPause.style.display='block';
+    }
+    playing = !playing;
+  }
+
+  // Auto-reproduce al primer clic en cualquier parte de la página
+  window.addEventListener('click', function autoPlay(){
+    if (!playing) toggleMusic();
+    window.removeEventListener('click', autoPlay);
+  }, {once:true});
+
+  // ---- RSVP → WHATSAPP ----
+  function submitRSVP() {
+    const name     = document.getElementById('name').value.trim();
+    const attending= document.getElementById('attending').value;
+    const guests   = document.getElementById('guests').value;
+    const message  = document.getElementById('message').value.trim();
+    if (!name || !attending) { alert('Por favor completa tu nombre y confirmación de asistencia.'); return; }
+    const waMsg = encodeURIComponent(
+      `🥂 *Confirmación — Boda Víctor & Lucía*\n\n` +
+      `👤 Nombre: ${name}\n` +
+      `📋 Asistencia: ${attending==='si'?'✅ Sí asistiré':'❌ No podré asistir'}\n` +
+      `👥 Personas: ${guests==='1'?'1 persona':guests+' personas'}` +
+      (message ? `\n💬 Mensaje: ${message}` : '')
+    );
+    document.getElementById('rsvp-form').style.display='none';
+    document.getElementById('success-msg').style.display='block';
+    setTimeout(()=>{ window.open(`https://wa.link/hkm4qh`, '_blank'); }, 800);
+  }
+</script>
+</body>
+</html>
